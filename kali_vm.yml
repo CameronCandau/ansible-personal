@@ -8,6 +8,8 @@
         cache_valid_time: 3600
         state: latest
 
+# TODO: Penelope Shell Handler: https://github.com/brightio/penelope 
+
 - import_playbook: general.yml
 - import_playbook: dev_minimal.yml
 - import_playbook: desktop.yml
