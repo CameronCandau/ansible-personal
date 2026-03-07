@@ -20,7 +20,7 @@
 - name: OSCP Lab Tooling
   hosts: all
   vars:
-    tools_dir: "{{ ansible_env.HOME }}/tools"
+    tools_dir: "{{ ansible_facts['env']['HOME'] }}/tools"
     oscp_repos:
       - name: OSCP-Methodology
         repo: "https://github.com/CameronCandau/OSCP-Methodology.git"
@@ -39,11 +39,11 @@
       loop:
         - "{{ oscp_dir }}"
         - "{{ tools_dir }}"
-        - "{{ ansible_env.HOME }}/oscp/logs"
+        - "{{ ansible_facts['env']['HOME'] }}/oscp/logs"
 
     # ── System packages ────────────────────────────────────────────────────
     - name: Install OSCP tooling packages
-      become: yes
+      become: true
       apt:
         name:
           - direnv
@@ -56,33 +56,33 @@
       git:
         repo: "{{ item.repo }}"
         dest: "{{ oscp_dir }}/{{ item.name }}"
-        update: no
+        update: false
       loop: "{{ oscp_repos }}"
 
     # ── Install OSCP-Automation scripts ────────────────────────────────────
     - name: Install OSCP-Automation scripts via make
       command:
-        cmd: make install PREFIX="{{ ansible_env.HOME }}/.local"
+        cmd: make install PREFIX="{{ ansible_facts['env']['HOME'] }}/.local"
         chdir: "{{ oscp_dir }}/OSCP-Automation"
-        creates: "{{ ansible_env.HOME }}/.local/bin/new-target"
+        creates: "{{ ansible_facts['env']['HOME'] }}/.local/bin/new-target"
 
     # ── vClip ──────────────────────────────────────────────────────────────
     - name: Install vClip via pipx
       command:
         cmd: pipx install "{{ oscp_dir }}/vClip"
-        creates: "{{ ansible_env.HOME }}/.local/bin/vclip"
+        creates: "{{ ansible_facts['env']['HOME'] }}/.local/bin/vclip"
 
     # ── Shell config (.bashrc) ─────────────────────────────────────────────
     - name: Source OSCP shellrc additions
       lineinfile:
-        path: "{{ ansible_env.HOME }}/.bashrc"
+        path: "{{ ansible_facts['env']['HOME'] }}/.bashrc"
         line: 'source {{ oscp_dir }}/OSCP-Automation/config/shellrc-additions.sh'
         regexp: 'shellrc-additions'
         state: present
 
     - name: Add direnv hook to .bashrc
       lineinfile:
-        path: "{{ ansible_env.HOME }}/.bashrc"
+        path: "{{ ansible_facts['env']['HOME'] }}/.bashrc"
         line: 'eval "$(direnv hook bash)"'
         regexp: 'direnv hook bash'
         state: present
@@ -91,15 +91,15 @@
     - name: Install tmux.conf
       copy:
         src: "{{ oscp_dir }}/OSCP-Automation/config/tmux.conf"
-        dest: "{{ ansible_env.HOME }}/.tmux.conf"
-        remote_src: yes
-        force: no
+        dest: "{{ ansible_facts['env']['HOME'] }}/.tmux.conf"
+        remote_src: true
+        force: false
 
     - name: Install TPM (tmux plugin manager)
       git:
         repo: "https://github.com/tmux-plugins/tpm"
-        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
-        update: no
+        dest: "{{ ansible_facts['env']['HOME'] }}/.tmux/plugins/tpm"
+        update: false
 
     # ── Penelope shell handler ─────────────────────────────────────────────
     - name: Download penelope.py
@@ -107,18 +107,18 @@
         url: "https://raw.githubusercontent.com/brightio/penelope/main/penelope.py"
         dest: "{{ tools_dir }}/penelope.py"
         mode: '0755'
-        force: no
+        force: false
 
     # ── vClip config ───────────────────────────────────────────────────────
     - name: Ensure vClip config directory exists
       file:
-        path: "{{ ansible_env.HOME }}/.config/vclip"
+        path: "{{ ansible_facts['env']['HOME'] }}/.config/vclip"
         state: directory
 
     - name: Create vClip user config (sets source directory)
       copy:
-        dest: "{{ ansible_env.HOME }}/.config/vclip/config.yaml"
-        force: no
+        dest: "{{ ansible_facts['env']['HOME'] }}/.config/vclip/config.yaml"
+        force: false
         content: |
           sources:
             directories:

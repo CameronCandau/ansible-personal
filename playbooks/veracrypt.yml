@@ -31,11 +31,11 @@
 
     - name: Verify PGP signature
       shell: gpg --verify /tmp/veracrypt.deb.sig /tmp/veracrypt.deb
-      ignore_errors: yes
+      ignore_errors: true
       register: gpg_verify
       failed_when: "'Good signature' not in gpg_verify.stdout"
 
     - name: Install VeraCrypt
       apt:
         deb: "/tmp/veracrypt.deb"
-      become: yes
+      become: true

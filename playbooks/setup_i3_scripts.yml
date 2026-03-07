@@ -1,13 +1,13 @@
 ---
 - hosts: localhost
   vars:
-    venv_dir: "{{ ansible_env.HOME }}/.local/venvs/i3_scripts"
+    venv_dir: "{{ ansible_facts['env']['HOME'] }}/.local/venvs/i3_scripts"
   tasks:
     - name: Ensure python3-venv is installed
       apt:
         name: python3-venv
         state: present
-      become: yes
+      become: true
 
     - name: Create virtual environment
       command:
@@ -22,12 +22,12 @@
 
     - name: Ensure ~/.config/i3 directory exists
       file:
-        path: "{{ ansible_env.HOME }}/.config/i3"
+        path: "{{ ansible_facts['env']['HOME'] }}/.config/i3"
         state: directory
 
     - name: Ensure i3 scripts are executable
       file:
-        path: "{{ ansible_env.HOME }}/.config/i3/scripts"
+        path: "{{ ansible_facts['env']['HOME'] }}/.config/i3/scripts"
         mode: u+x
         state: directory
-        recurse: yes
+        recurse: true

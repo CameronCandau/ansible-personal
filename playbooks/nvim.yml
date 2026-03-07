@@ -10,14 +10,14 @@
     - name: Get latest Neovim release info
       ansible.builtin.uri:
         url: "https://api.github.com/repos/neovim/neovim/releases/latest"
-        return_content: yes
+        return_content: true
         status_code: 200
         body_format: json
       register: nvim_release
       when: not nvim_exists.stat.exists
 
     - name: Download Neovim AppImage
-      become: yes
+      become: true
       ansible.builtin.get_url:
         url: "https://github.com/neovim/neovim/releases/download/{{ nvim_release.json.tag_name }}/nvim-linux-x86_64.appimage"
         dest: "{{ cmdr_bin_dir }}/nvim"

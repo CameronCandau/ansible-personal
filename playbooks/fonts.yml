@@ -11,16 +11,16 @@
     - name: Hack exists
       shell: "find {{ lookup('env', 'HOME') }}/.fonts -iname 'Hack*Nerd*Font*Complete*' -type f"
       register: hack_exists
-      ignore_errors: yes
+      ignore_errors: true
 
     - name: Download Hack
       when: hack_exists is failed
       ansible.builtin.unarchive:
         src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/Hack.zip
         dest: "{{ lookup('env', 'HOME') }}/.fonts/"
-        remote_src: yes
+        remote_src: true
 
     - name: Refresh font cache to enable new font(s)
       when: hack_exists is failed
-      become: yes
+      become: true
       shell: "fc-cache -fv"

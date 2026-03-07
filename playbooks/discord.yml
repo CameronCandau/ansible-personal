@@ -18,5 +18,5 @@
           apt:
             deb: /tmp/discord.deb
       when: discord_check.rc == 1
-      become: yes
+      become: true
 ...

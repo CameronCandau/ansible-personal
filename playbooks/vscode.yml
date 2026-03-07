@@ -14,7 +14,7 @@
     - name: Fetch JSON object
       uri:
         url: https://code.visualstudio.com/sha?build=stable
-        return_content: yes
+        return_content: true
       register: vscode_json
 
     - name: Extract SHA256 checksum for linux-deb-x64
@@ -41,6 +41,6 @@
         msg: "Calculated checksum: {{ calculated_checksum.stdout.split()[0] }}"
 
     - name: Install VSCode
-      become: yes
+      become: true
       apt:
         deb: "/tmp/code.deb"

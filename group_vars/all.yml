@@ -13,4 +13,4 @@ dotfiles_repo: "https://github.com/CameronCandau/dotfiles"
 wezterm_version: "20240203-110809-5046fc22"
 
 # OSCP repos clone location
-oscp_dir: "{{ ansible_env.HOME }}/projects/personal/oscp"
+oscp_dir: "{{ ansible_facts['env']['HOME'] }}/projects/personal/oscp"
