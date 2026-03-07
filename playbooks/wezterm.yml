@@ -1,15 +1,17 @@
 ---
 - name: WezTerm
   hosts: all
+  vars:
+    wezterm_appimage: "{{ ansible_env.HOME }}/WezTerm.AppImage"
   tasks:
-    - name: Download WezTerm AppImage to home directory
-      shell: |
-        curl -Lo ~/WezTerm.AppImage https://github.com/wezterm/wezterm/releases/download/20240203-110809-5046fc22/WezTerm-20240203-110809-5046fc22-Ubuntu20.04.AppImage
+    - name: Check if WezTerm already installed
+      stat:
+        path: "{{ wezterm_appimage }}"
+      register: wezterm_stat
 
-    - name: Make WezTerm AppImage executable
-      file:
-        path: "~/WezTerm.AppImage"
+    - name: Download WezTerm AppImage
+      get_url:
+        url: "https://github.com/wezterm/wezterm/releases/download/{{ wezterm_version }}/WezTerm-{{ wezterm_version }}-Ubuntu20.04.AppImage"
+        dest: "{{ wezterm_appimage }}"
         mode: '0755'
-        state: file
-
-...
+      when: not wezterm_stat.stat.exists

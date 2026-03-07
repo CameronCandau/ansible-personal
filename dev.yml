@@ -1,8 +1,9 @@
 ---
 - hosts: all
+  name: Extended development tools
   vars:
     dev:
-      # QEMU/KVM/Virt-Manager 
+      # QEMU/KVM/Virt-Manager
       - qemu-kvm
       - libvirt-daemon-system
       - libvirt-clients
@@ -12,10 +13,9 @@
       # Reports
       - texlive-latex-recommended
       - texlive-fonts-extra
-      - texlive-latex-extra 
+      - texlive-latex-extra
       - pandoc
       - p7zip-full
-
 
   tasks:
     - name: Install packages
@@ -24,7 +24,4 @@
         name: "{{ dev }}"
         state: present
 
-
-#- import_playbook: playbooks/vscode.yml    
 - import_playbook: dev_minimal.yml
-...

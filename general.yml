@@ -1,6 +1,7 @@
 ---
 - hosts: all
-  vars: 
+  name: General utilities
+  vars:
     general:
       - curl
       - wget
@@ -21,4 +22,3 @@
       apt:
         name: "{{ general }}"
         state: present
-...

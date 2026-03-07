@@ -1,13 +1,21 @@
 ---
 - hosts: all
-  name: Install my dotfiles.
+  name: Install dotfiles
   vars:
-    dotfiles_repo: "https://github.com/Cam-Can-Do/dotfiles"
-    dotfiles_dir: "~/dotfiles"
+    dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
   tasks:
+    - name: Check if dotfiles repo already cloned
+      stat:
+        path: "{{ dotfiles_dir }}"
+      register: dotfiles_dir_stat
+
     - name: Clone dotfiles repository
-      shell: |
-        git clone {{ dotfiles_repo }} {{ dotfiles_dir }}
+      git:
+        repo: "{{ dotfiles_repo }}"
+        dest: "{{ dotfiles_dir }}"
+        update: no
+      when: not dotfiles_dir_stat.stat.exists
+      register: git_clone
 
     - name: Ensure GNU Stow installed
       become: yes
@@ -15,7 +23,8 @@
         name: stow
         state: present
 
-    - name: Stow dotfiles (overwrites conflicting files)
+    - name: Stow dotfiles
       shell: |
         cd {{ dotfiles_dir }}
-        stow . --adopt
+        stow --no-folding .
+      when: git_clone is defined and git_clone.changed

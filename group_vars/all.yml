@@ -1,0 +1,16 @@
+---
+# Shared variables used across playbooks.
+# Override any of these at runtime: -e variable_name=value
+
+# Binary install location (nvim, zellij, etc.)
+cmdr_bin_dir: /usr/local/bin
+
+# Dotfiles repository URL
+dotfiles_repo: "https://github.com/Cam-Can-Do/dotfiles"
+
+# WezTerm AppImage version to install
+# Update this when a new release is available
+wezterm_version: "20240203-110809-5046fc22"
+
+# OSCP repos clone location
+oscp_dir: "{{ ansible_env.HOME }}/projects/personal/oscp"

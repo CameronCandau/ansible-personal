@@ -30,7 +30,6 @@
       - dmenu
       - rofi
 
-
       - flameshot
 
   tasks: 
@@ -50,6 +49,7 @@
     - name: Set Thunar as default file manager
       become: yes
       command: xdg-mime default thunar.desktop inode/directory
+      changed_when: false
 
 
 - import_playbook: playbooks/dotfiles.yml
@@ -57,5 +57,3 @@
 - import_playbook: playbooks/wezterm.yml
 - import_playbook: playbooks/vscode.yml
 - import_playbook: playbooks/fonts.yml
-
-...

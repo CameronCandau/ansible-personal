@@ -1,0 +1,143 @@
+---
+# OSCP Lab Tooling
+# Installs and configures the full OSCP workflow stack on Kali or Debian.
+#
+# What this installs:
+#   - direnv           (auto-export $IP/$TARGET_NAME on cd into target dirs)
+#   - tmux + TPM       (session persistence; tmux-logging auto-logs pane output)
+#   - pipx             (isolated Python tool installs)
+#   - vClip            (rofi command picker, cloned from GitHub + installed via pipx)
+#   - OSCP-Methodology (command reference markdown files, feeds vClip)
+#   - OSCP-Automation  (workspace init scripts, scan automation)
+#   - penelope.py      (shell handler, ~/tools/penelope.py)
+#
+# Usage:
+#   ansible-playbook playbooks/oscp.yml -K
+#
+# Prerequisites:
+#   - rofi installed (included in desktop.yml / kali_vm.yml)
+
+- name: OSCP Lab Tooling
+  hosts: all
+  vars:
+    tools_dir: "{{ ansible_env.HOME }}/tools"
+    oscp_repos:
+      - name: OSCP-Methodology
+        repo: "https://github.com/CameronCandau/OSCP-Methodology.git"
+      - name: OSCP-Automation
+        repo: "https://github.com/CameronCandau/OSCP-Automation.git"
+      - name: vClip
+        repo: "https://github.com/CameronCandau/vClip.git"
+
+  tasks:
+    # ── Directories ────────────────────────────────────────────────────────
+    - name: Ensure project directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - "{{ oscp_dir }}"
+        - "{{ tools_dir }}"
+        - "{{ ansible_env.HOME }}/oscp/logs"
+
+    # ── System packages ────────────────────────────────────────────────────
+    - name: Install OSCP tooling packages
+      become: yes
+      apt:
+        name:
+          - direnv
+          - tmux
+          - pipx
+        state: present
+
+    # ── Clone repos ────────────────────────────────────────────────────────
+    - name: Clone OSCP repos
+      git:
+        repo: "{{ item.repo }}"
+        dest: "{{ oscp_dir }}/{{ item.name }}"
+        update: no
+      loop: "{{ oscp_repos }}"
+
+    # ── vClip ──────────────────────────────────────────────────────────────
+    - name: Install vClip via pipx
+      command:
+        cmd: pipx install "{{ oscp_dir }}/vClip"
+        creates: "{{ ansible_env.HOME }}/.local/bin/vclip"
+
+    # ── Shell config (.bashrc) ─────────────────────────────────────────────
+    - name: Add OSCP-Automation/bin to PATH
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'export PATH="$PATH:{{ oscp_dir }}/OSCP-Automation/bin"'
+        regexp: 'OSCP-Automation/bin'
+        state: present
+
+    - name: Source OSCP shellrc additions
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'source {{ oscp_dir }}/OSCP-Automation/config/shellrc-additions.sh'
+        regexp: 'shellrc-additions'
+        state: present
+
+    - name: Add direnv hook to .bashrc
+      lineinfile:
+        path: "{{ ansible_env.HOME }}/.bashrc"
+        line: 'eval "$(direnv hook bash)"'
+        regexp: 'direnv hook bash'
+        state: present
+
+    # ── tmux ───────────────────────────────────────────────────────────────
+    - name: Install tmux.conf
+      copy:
+        src: "{{ oscp_dir }}/OSCP-Automation/config/tmux.conf"
+        dest: "{{ ansible_env.HOME }}/.tmux.conf"
+        remote_src: yes
+        force: no
+
+    - name: Install TPM (tmux plugin manager)
+      git:
+        repo: "https://github.com/tmux-plugins/tpm"
+        dest: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+        update: no
+
+    # ── Penelope shell handler ─────────────────────────────────────────────
+    - name: Download penelope.py
+      get_url:
+        url: "https://raw.githubusercontent.com/brightio/penelope/main/penelope.py"
+        dest: "{{ tools_dir }}/penelope.py"
+        mode: '0755'
+        force: no
+
+    # ── vClip config ───────────────────────────────────────────────────────
+    - name: Ensure vClip config directory exists
+      file:
+        path: "{{ ansible_env.HOME }}/.config/vclip"
+        state: directory
+
+    - name: Create vClip user config (sets source directory)
+      copy:
+        dest: "{{ ansible_env.HOME }}/.config/vclip/config.yaml"
+        force: no
+        content: |
+          sources:
+            directories:
+              - "{{ oscp_dir }}/OSCP-Methodology"
+            recursive: true
+            file_patterns:
+              - "*.md"
+              - "*.markdown"
+
+          rofi:
+            use_markup: true
+            max_lines: 15
+            prompt: "Commands"
+            window_width: 60
+            element_height: 2
+
+          cache:
+            enabled: true
+
+          variables:
+            # LHOST: "10.10.14.5"
+            # WORDLIST: "/usr/share/wordlists/rockyou.txt"

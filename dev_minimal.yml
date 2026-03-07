@@ -1,10 +1,11 @@
 ---
 - hosts: all
+  name: Minimal development tools
   vars:
     dev_minimal:
       # Editors
       - vim
-      
+
       # Version Control
       - git
 
@@ -15,9 +16,8 @@
       - python3-pip
       - python3-venv
 
-      #- nodejs
       - npm
-      
+
       # Build tools
       - make
       - cmake
@@ -28,18 +28,9 @@
       # Containerization
       - docker.io
 
-      # Virtualization
-      
-      # TODO: Not in default repos (maybe better for desktop_extra.yml)
-      #- virtualbox
-
-
   tasks:
     - name: Install packages
       become: yes
       apt:
         name: "{{ dev_minimal }}"
         state: present
-
-
-...

@@ -1,64 +1,25 @@
-- name: Install and configure Neovim
-  hosts: localhost
-  vars:
-    cmdr_bin_dir: /usr/local/bin
-    nvim_release_url: https://api.github.com/repos/neovim/neovim/releases/latest
-    nvim_archive_name: nvim-linux64.tar.gz
-    nvim_archive_dest: "/tmp/{{ nvim_archive_name }}"
-    nvim_extract_dest: /tmp/nvim-linux64
-    nvim_install_path: "{{ cmdr_bin_dir }}/nvim"
-    nvim_binary_path: "/tmp/nvim-linux64/nvim-linux64/bin/nvim"
+---
+- name: Install Neovim
+  hosts: all
   tasks:
     - name: Check for Neovim binary
       ansible.builtin.stat:
-        path: "{{ nvim_install_path }}"
+        path: "{{ cmdr_bin_dir }}/nvim"
       register: nvim_exists
 
     - name: Get latest Neovim release info
       ansible.builtin.uri:
-        url: "{{ nvim_release_url }}"
+        url: "https://api.github.com/repos/neovim/neovim/releases/latest"
         return_content: yes
         status_code: 200
         body_format: json
       register: nvim_release
-
-    - name: Download Neovim binary
       when: not nvim_exists.stat.exists
+
+    - name: Download Neovim AppImage
+      become: yes
       ansible.builtin.get_url:
-        url: "https://github.com/neovim/neovim/releases/download/{{ nvim_release.json.tag_name }}/{{ nvim_archive_name }}"
-        dest: "{{ nvim_archive_dest }}"
-
-    - name: Ensure extraction directory exists
-      become: yes
-      ansible.builtin.file:
-        path: "{{ nvim_extract_dest }}"
-        state: directory
+        url: "https://github.com/neovim/neovim/releases/download/{{ nvim_release.json.tag_name }}/nvim-linux-x86_64.appimage"
+        dest: "{{ cmdr_bin_dir }}/nvim"
         mode: '0755'
-      check_mode: no
-
-    - name: Extract Neovim archive
-      become: yes
-      when: not ansible_check_mode and not nvim_exists.stat.exists
-      ansible.builtin.unarchive:
-        src: "{{ nvim_archive_dest }}"
-        remote_src: true
-        dest: "{{ nvim_extract_dest }}"
-        creates: "{{ nvim_extract_dest }}/nvim-linux64/bin/nvim"
-
-    - name: Move Neovim binary to target directory
-      become: yes
       when: not nvim_exists.stat.exists
-      ansible.builtin.command:
-        cmd: mv "{{ nvim_binary_path }}" "{{ nvim_install_path }}"
-
-    - name: Remove Neovim archive and extraction directory
-      become: yes
-      when: not nvim_exists.stat.exists
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: absent
-      loop:
-        - "{{ nvim_archive_dest }}"
-        - "{{ nvim_extract_dest }}"
-
-

@@ -1,6 +1,9 @@
 ---
 - hosts: all
+  name: Hardware drivers
   become: yes
+  vars:
+    nvidia_driver_version: "470"
   tasks:
     - name: Add graphics-drivers PPA
       apt_repository:
@@ -13,7 +16,5 @@
 
     - name: Install NVIDIA drivers
       apt:
-        name: nvidia-driver-470
+        name: "nvidia-driver-{{ nvidia_driver_version }}"
         state: present
-
-...
